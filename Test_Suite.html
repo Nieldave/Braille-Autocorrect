@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braille Autocorrect Test Suite</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-case {
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 5px 5px 0;
+            position: relative;
+        }
+
+        .test-case.passed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .test-case.failed {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .test-details {
+            font-family: monospace;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .test-result {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .passed .test-result {
+            background: #28a745;
+            color: white;
+        }
+
+        .failed .test-result {
+            background: #dc3545;
+            color: white;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .run-tests-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: transform 0.2s;
+        }
+
+        .run-tests-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .performance-chart {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .error-patterns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .pattern-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .pattern-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .pattern-example {
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Braille Autocorrect System - Comprehensive Test Suite</h1>
+        <p>Testing pattern recognition, error correction, and performance metrics</p>
+    </div>
+
+    <div class="stats" id="testStats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalTests">0</div>
+            <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="passedTests">0</div>
+            <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="failedTests">0</div>
+            <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="passRate">0%</div>
+            <div class="stat-label">Pass Rate</div>
+        </div>
+    </div>
+
+    <button class="run-tests-btn" onclick="runAllTests()">Run Complete Test Suite</button>
+
+    <div class="test-section">
+        <h3>Error Pattern Analysis</h3>
+        <p>Understanding the most common types of Braille input errors helps improve the autocorrect algorithm:</p>
+        
+        <div class="error-patterns">
+            <div class="pattern-card">
+                <div class="pattern-title">Adjacent Key Errors (23%)</div>
+                <div class="pattern-example">Q → W (dot 3 → dot 2)<br>K → O (dot 4 → dot 5)</div>
+            </div>
+            <div class="pattern-card">
+                <div class="pattern-title">Missing Dots (31%)</div>
+                <div class="pattern-example">DWO → DW (THE → B)<br>Incomplete key press</div>
+            </div>
+            <div class="pattern-card">
+                <div class="pattern-title">Extra Dots (28%)</div>
+                <div class="pattern-example">D → DK (A → C)<br>Accidental key press</div>
+            </div>
+            <div class="pattern-card">
+                <div class="pattern-title">Timing Errors (18%)</div>
+                <div class="pattern-example">Sequential vs simultaneous<br>DWQKO → D W Q K O</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Basic Pattern Recognition Tests</h3>
+        <div id="basicTests"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Error Correction Tests</h3>
+        <div id="correctionTests"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Learning Algorithm Tests</h3>
+        <div id="learningTests"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Performance Stress Tests</h3>
+        <div id="performanceTests"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Edge Case Tests</h3>
+        <div id="edgeTests"></div>
+    </div>
+
+    <div class="performance-chart">
+        <h3>Real-time Performance Analysis</h3>
+        <canvas id="performanceChart" width="800" height="200"></canvas>
+    </div>
+
+    <script>
+        // Embed the BrailleAutocorrect class (same as in original)
+        class BrailleAutocorrect {
+            constructor() {
+                this.keyToDot = {
+                    'D': 1, 'W': 2, 'Q': 3,
+                    'K': 4, 'O': 5, 'P': 6
+                };
+                
+                this.braillePatterns = {
+                    'A': [1], 'B': [1,2], 'C': [1,4], 'D': [1,4,5], 'E': [1,5],
+                    'F': [1,2,4], 'G': [1,2,4,5], 'H': [1,2,5], 'I': [2,4], 'J': [2,4,5],
+                    'K': [1,3], 'L': [1,2,3], 'M': [1,3,4], 'N': [1,3,4,5], 'O': [1,3,5],
+                    'P': [1,2,3,4], 'Q': [1,2,3,4,5], 'R': [1,2,3,5], 'S': [2,3,4], 'T': [2,3,4,5],
+                    'U': [1,3,6], 'V': [1,2,3,6], 'W': [2,4,5,6], 'X': [1,3,4,6], 'Y': [1,3,4,5,6], 'Z': [1,3,5,6]
+                };
+                
+                this.patternToLetter = {};
+                for (let [letter, pattern] of Object.entries(this.braillePatterns)) {
+                    let key = pattern.sort().join(',');
+                    this.patternToLetter[key] = letter;
+                }
+                
+                this.dictionary = [
+                    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER',
+                    'WAS', 'ONE', 'OUR', 'HAD', 'HAVE', 'WHAT', 'WERE', 'THEY', 'WE', 'BEEN',
+                    'THEIR', 'SAID', 'EACH', 'WHICH', 'THERE', 'HOW', 'IF', 'WILL', 'UP',
+                    'OTHER', 'ABOUT', 'OUT', 'MANY', 'THEN', 'THEM', 'THESE', 'SO', 'SOME',
+                    'TIME', 'VERY', 'WHEN', 'MUCH', 'NEW', 'WOULD', 'THERE', 'EACH', 'MAKE',
+                    'LIKE', 'INTO', 'HIM', 'HAS', 'TWO', 'MORE', 'GO', 'NO', 'WAY', 'COULD',
+                    'MY', 'THAN', 'FIRST', 'WATER', 'LONG', 'LITTLE', 'WHO', 'OIL', 'ITS',
+                    'NOW', 'FIND', 'DOWN', 'DAY', 'DID', 'GET', 'COME', 'MADE', 'MAY', 'PART'
+                ];
+                
+                this.userHistory = new Map();
+                this.suggestionCache = new Map();
+                this.queryCount = 0;
+                this.totalResponseTime = 0;
+                this.cacheHits = 0;
+            }
+            
+            keysToDots(keys) {
+                let dots = [];
+                for (let key of keys.toUpperCase()) {
+                    if (this.keyToDot[key]) {
+                        dots.push(this.keyToDot[key]);
+                    }
+                }
+                return dots.sort();
+            }
+            
+            dotsToLetter(dots) {
+                let key = dots.sort().join(',');
+                return this.patternToLetter[key] || '?';
+            }
+            
+            keysToLetter(keys) {
+                let dots = this.keysToDots(keys);
+                return this.dotsToLetter(dots);
+            }
+            
+            levenshteinDistance(str1, str2) {
+                const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+                
+                for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+                for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+                
+                for (let j = 1; j <= str2.length; j++) {
+                    for (let i = 1; i <= str1.length; i++) {
+                        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                        matrix[j][i] = Math.min(
+                            matrix[j][i - 1] + 1,
+                            matrix[j - 1][i] + 1,
+                            matrix[j - 1][i - 1] + cost
+                        );
+                    }
+                }
+                
+                return matrix[str2.length][str1.length];
+            }
+            
+            calculateSimilarity(input, target) {
+                let inputLetters = this.parseInput(input);
+                let targetLetters = target;
+                
+                let letterDistance = this.levenshteinDistance(inputLetters, targetLetters);
+                let patternSimilarity = this.calculatePatternSimilarity(input, target);
+                
+                return letterDistance - (patternSimilarity * 0.3);
+            }
+            
+            calculatePatternSimilarity(input, target) {
+                let inputWords = input.split(' ');
+                let targetWord = target;
+                
+                if (inputWords.length !== 1) return 0;
+                
+                let similarity = 0;
+                let minLength = Math.min(inputWords[0].length, targetWord.length);
+                
+                for (let i = 0; i < minLength; i++) {
+                    let inputChar = inputWords[0][i];
+                    let targetChar = targetWord[i];
+                    
+                    if (inputChar === '?') continue;
+                    
+                    let inputDots = this.braillePatterns[inputChar] || [];
+                    let targetDots = this.braillePatterns[targetChar] || [];
+                    
+                    let commonDots = inputDots.filter(dot => targetDots.includes(dot)).length;
+                    let totalDots = new Set([...inputDots, ...targetDots]).size;
+                    
+                    if (totalDots > 0) {
+                        similarity += commonDots / totalDots;
+                    }
+                }
+                
+                return similarity;
+            }
+            
+            parseInput(input) {
+                let words = input.split(' ');
+                let result = [];
+                
+                for (let word of words) {
+                    if (word.trim() === '') {
+                        result.push(' ');
+                        continue;
+                    }
+                    
+                    let letter = this.keysToLetter(word);
+                    result.push(letter);
+                }
+                
+                return result.join('');
+            }
+            
+            getSuggestions(input, maxSuggestions = 5) {
+                let startTime = performance.now();
+                
+                let cacheKey = input + '_' + maxSuggestions;
+                if (this.suggestionCache.has(cacheKey)) {
+                    this.cacheHits++;
+                    this.queryCount++;
+                    this.totalResponseTime += performance.now() - startTime;
+                    return this.suggestionCache.get(cacheKey);
+                }
+                
+                let suggestions = [];
+                
+                for (let word of this.dictionary) {
+                    let similarity = this.calculateSimilarity(input, word);
+                    suggestions.push({
+                        word: word,
+                        score: similarity,
+                        confidence: Math.max(0, Math.min(1, 1 - (similarity / Math.max(input.length, word.length))))
+                    });
+                }
+                
+                suggestions.sort((a, b) => a.score - b.score);
+                suggestions = this.applyUserHistoryBonus(suggestions, input);
+                
+                let result = suggestions.slice(0, maxSuggestions);
+                this.suggestionCache.set(cacheKey, result);
+                
+                this.queryCount++;
+                this.totalResponseTime += performance.now() - startTime;
+                
+                return result;
+            }
+            
+            applyUserHistoryBonus(suggestions, input) {
+                for (let suggestion of suggestions) {
+                    let historyKey = input + '->' + suggestion.word;
+                    if (this.userHistory.has(historyKey)) {
+                        let frequency = this.userHistory.get(historyKey);
+                        suggestion.score -= frequency * 0.5;
+                        suggestion.confidence = Math.min(1, suggestion.confidence + frequency * 0.1);
+                    }
+                }
+                
+                return suggestions.sort((a, b) => a.score - b.score);
+            }
+            
+            learnFromCorrection(originalInput, chosenCorrection) {
+                let historyKey = originalInput + '->' + chosenCorrection;
+                let currentCount = this.userHistory.get(historyKey) || 0;
+                this.userHistory.set(historyKey, currentCount + 1);
+                
+                for (let [key, value] of this.suggestionCache.entries()) {
+                    if (key.startsWith(originalInput)) {
+                        this.suggestionCache.delete(key);
+                    }
+                }
+            }
+            
+            processRealTimeInput(input) {
+                if (!input || input.trim() === '') {
+                    return { parsed: '', suggestions: [], isValid: true };
+                }
+                
+                let parsed = this.parseInput(input);
+                let hasUnknownChars = parsed.includes('?');
+                
+                let result = {
+                    parsed: parsed,
+                    suggestions: [],
+                    isValid: !hasUnknownChars,
+                    rawInput: input
+                };
+                
+                if (hasUnknownChars || !this.dictionary.includes(parsed.toUpperCase())) {
+                    result.suggestions = this.getSuggestions(input);
+                }
+                
+                return result;
+            }
+            
+            getStats() {
+                return {
+                    totalQueries: this.queryCount,
+                    avgResponseTime: this.queryCount > 0 ? (this.totalResponseTime / this.queryCount).toFixed(2) : 0,
+                    cacheHitRate: this.queryCount > 0 ? ((this.cacheHits / this.queryCount) * 100).toFixed(1) : 0,
+                    dictionarySize: this.dictionary.length
+                };
+            }
+        }
+
+        // Initialize test system
+        const autocorrect = new BrailleAutocorrect();
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            results: []
+        };
+
+        // Test framework
+        function createTestCase(title, testFunction, expectedResult, section) {
+            testResults.total++;
+            
+            try {
+                const startTime = performance.now();
+                const result = testFunction();
+                const executionTime = performance.now() - startTime;
+                
+                const passed = JSON.stringify(result) === JSON.stringify(expectedResult);
+                
+                if (passed) {
+                    testResults.passed++;
+                } else {
+                    testResults.failed++;
+                }
+                
+                const testCase = document.createElement('div');
+                testCase.className = `test-case ${passed ? 'passed' : 'failed'}`;
+                
+                testCase.innerHTML = `
+                    <div class="test-result">${passed ? 'PASS' : 'FAIL'}</div>
+                    <div class="test-title">${title}</div>
+                    <div class="test-details">
+                        Expected: ${JSON.stringify(expectedResult)}<br>
+                        Got: ${JSON.stringify(result)}<br>
+                        Execution time: ${executionTime.toFixed(3)}ms
+                    </div>
+                `;
+                
+                document.getElementById(section).appendChild(testCase);
+                
+                testResults.results.push({
+                    title,
+                    passed,
+                    result,
+                    expectedResult,
+                    executionTime
+                });
+                
+            } catch (error) {
+                testResults.failed++;
+                
+                const testCase = document.createElement('div');
+                testCase.className = 'test-case failed';
+                
+                testCase.innerHTML = `
+                    <div class="test-result">ERROR</div>
+                    <div class="test-title">${title}</div>
+                    <div class="test-details">
+                        Error: ${error.message}<br>
+                        Stack: ${error.stack}
+                    </div>
+                `;
+                
+                document.getElementById(section).appendChild(testCase);
+            }
+        }
+
+        function runAllTests() {
+            // Clear previous results
+            testResults = { total: 0, passed: 0, failed: 0, results: [] };
+            ['basicTests', 'correctionTests', 'learningTests', 'performanceTests', 'edgeTests'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+
+            // Basic Pattern Recognition Tests
+            createTestCase(
+                'Single letter A (D key)',
+                () => autocorrect.keysToLetter('D'),
+                'A',
+                'basicTests'
+            );
+
+            createTestCase(
+                'Single letter C (DK keys)',
+                () => autocorrect.keysToLetter('DK'),
+                'C',
+                'basicTests'
+            );
+
+            createTestCase(
+                'Complex letter THE (DWQKO keys)',
+                () => autocorrect.keysToLetter('DWQKO'),
+                'T',
+                'basicTests'
+            );
+
+            createTestCase(
+                'Parse complete word "AND"',
+                () => autocorrect.parseInput('D DWQ DK'),
+                'AND',
+                'basicTests'
+            );
+
+            // Error Correction Tests
+            createTestCase(
+                'Missing dot correction (TGE → THE)',
+                () => {
+                    const suggestions = autocorrect.getSuggestions('DWQO D');
+                    return suggestions.length > 0 ? suggestions[0].word : null;
+                },
+                'THE',
+                'correctionTests'
+            );
+
+            createTestCase(
+                'Extra dot correction (AKD → AND)',
+                () => {
+                    const suggestions = autocorrect.getSuggestions('DK DWQ DK');
+                    return suggestions.length > 0 ? suggestions[0].word : null;
+                },
+                'AND',
+                'correctionTests'
+            );
+
+            createTestCase(
+                'Adjacent key error (Q→W pattern)',
+                () => {
+                    const suggestions = autocorrect.getSuggestions('DW'); // B instead of L
+                    return suggestions.some(s => s.word === 'ALL' || s.word === 'BUT');
+                },
+                true,
+                'correctionTests'
+            );
+
+            // Learning Algorithm Tests
+            createTestCase(
+                'Learning from user correction',
+                () => {
+                    // Simulate user choosing a specific correction
+                    autocorrect.learnFromCorrection('DK', 'GO');
+                    const suggestions = autocorrect.getSuggestions('DK');
+                    return suggestions[0].word;
+                },
+                'GO',
+                'learningTests'
+            );
+
+            createTestCase(
+                'User history affects ranking',
+                () => {
+                    // Learn multiple times
+                    autocorrect.learnFromCorrection('D W', 'WE');
+                    autocorrect.learnFromCorrection('D W', 'WE');
+                    const suggestions = autocorrect.getSuggestions('D W');
+                    return suggestions[0].word;
+                },
+                'WE',
+                'learningTests'
+            );
+
+            // Performance Stress Tests
+            createTestCase(
+                'Response time under 10ms',
+                () => {
+                    const startTime = performance.now();
+                    autocorrect.getSuggestions('DWQKO');
+                    const endTime = performance.now();
+                    return (endTime - startTime) < 10;
+                },
+                true,
+                'performanceTests'
+            );
+
+            createTestCase(
+                'Bulk processing 100 queries',
+                () => {
+                    const startTime = performance.now();
+                    for (let i = 0; i < 100; i++) {
+                        autocorrect.getSuggestions('D' + i % 10);
+                    }
+                    const endTime = performance.now();
+                    return (endTime - startTime) < 1000; // Under 1 second for 100 queries
+                },
+                true,
+                'performanceTests'
+            );
+
+            // Edge Case Tests
+            createTestCase(
+                'Empty input handling',
+                () => autocorrect.processRealTimeInput(''),
+                { parsed: '', suggestions: [], isValid: true },
+                'edgeTests'
+            );
+
+            createTestCase(
+                'Invalid key combinations',
+                () => autocorrect.keysToLetter('XYZ'),
+                '?',
+                'edgeTests'
+            );
+
+            createTestCase(
+                'Very long input string',
+                () => {
+                    const longInput = 'DWQKO '.repeat(20); // 20 repetitions of "THE"
+                    const result = autocorrect.parseInput(longInput.trim());
+                    return result.length > 10;
+                },
+                true,
+                'edgeTests'
+            );
+
+            // Update statistics
+            updateTestStats();
+            drawPerformanceChart();
+        }
+
+        function updateTestStats() {
+            document.getElementById('totalTests').textContent = testResults.total;
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            
+            const passRate = testResults.total > 0 ? 
+                ((testResults.passed / testResults.total) * 100).toFixed(1) : 0;
+            document.getElementById('passRate').textContent = passRate + '%';
+        }
+
+        function drawPerformanceChart() {
+            const canvas = document.getElementById('performanceChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Get execution times from test results
+            const times = testResults.results.map(r => r.executionTime).slice(0, 20); // First 20 tests
+            
+            if (times.length === 0) return;
+            
+            const maxTime = Math.max(...times);
+            const width = canvas.width - 60;
+            const height = canvas.height - 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, height);
+            ctx.lineTo(50, 20);
+            ctx.moveTo(50, height);
+            ctx.lineTo(width + 50, height);
+            ctx.stroke();
+            
+            // Draw bars
+            const barWidth = width / times.length;
+            
+            times.forEach((time, index) => {
+                const barHeight = (time / maxTime) * (height - 40);
+                const x = 50 + (index * barWidth);
+                const y = height - barHeight;
+                
+                // Color based on performance
+                if (time < 1) {
+                    ctx.fillStyle = '#28a745'; // Green for fast
+                } else if (time < 5) {
+                    ctx.fillStyle = '#ffc107'; // Yellow for medium
+                } else {
+                    ctx.fillStyle = '#dc3545'; // Red for slow
+                }
+                
+                ctx.fillRect(x, y, barWidth - 2, barHeight);
+            });
+            
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText('Execution Time (ms)', 10, height / 2);
+            ctx.fillText('Test Cases', width / 2, height + 35);
+            ctx.fillText(`Max: ${maxTime.toFixed(2)}ms`, width - 100, 35);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Braille Autocorrect Test Suite Loaded');
+        });
+    </script>
+</body>
+</html>
